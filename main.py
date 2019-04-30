@@ -21,6 +21,8 @@ for c in 'ab':
 object_dict['a'].rotate(3)
 object_dict['b'].rotate(4)
 
+object_dict['a'].move((0,6),board)
+
 object_dict['c'] = Deflector((3,4),1,'c')
 object_dict['c'].plot_piece(board)
 

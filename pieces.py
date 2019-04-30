@@ -20,6 +20,21 @@ class Deflector:
     def rotate(self, new_angle):
         self.angle = new_angle
 
+    def move(self, pos, board):
+        if self.move_valid(pos):
+            self.remove_piece(board)
+            self.row = pos[0]
+            self.col = pos[1]
+            self.plot_piece(board)
+        else:
+            return False
+
+    def move_valid(self, pos):
+        if abs(self.row - pos[0]) <= 1 and abs(self.col - pos[1]) <= 1:
+            return True
+        else:
+            return False
+
     def calc_angle(self, dir):
         if dir == 'u':
             if self.angle == 3:
@@ -50,6 +65,7 @@ class Laser:
     def __init__(self, color):
         self.row = 8
         self.col = 8
+        self.color = color
 
     def plot_piece(self, board):
         board[self.row][self.col] = 'L'
