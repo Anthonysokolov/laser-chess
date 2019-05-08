@@ -2,7 +2,7 @@
 Class definitions for laser chess pieces
 '''
 class Deflector:
-    def __init__(self, pos, angle, symbol):
+    def __init__(self, pos, angle, symbol, color):
         self.row = pos[0]
         self.col = pos[1]
         # For the angle
@@ -70,11 +70,10 @@ class Laser:
     def plot_piece(self, board):
         board[self.row][self.col] = 'L'
 
-    def shoot_laser(self, board, pieces):
+    def shoot_laser(self, board):
         r = self.row
         c = self.col
         dir = 'u'
-        count = 0
         while True:
             r, c = self.move_laser(r,c,dir)
             if self.laser_valid(r,c) == False:
