@@ -2,66 +2,102 @@
 Main file for laser chess
 '''
 import pygame
-from pieces import Deflector, Laser, Switch
+import json
+from pieces import Deflector, Laser
 
-board_size = 900
-square_size = board_size/9
+# Load board setups
+with open('setups.json') as f:
+    setupsj = json.load(f)
+
+# Set board and square size
+tiles = 9
+square_size = 100
+board_size = tiles * square_size
+
+# Initialize pygame and load piece images
 pygame.init()
 screen = pygame.display.set_mode((board_size,board_size))
-board = pygame.Surface((board_size, board_size))
-while True:
-    screen.fill((255,0,0))
-    #board.fill((255,0,0))
-    pygame.display.flip()
+rtriangle = pygame.image.load("rtriangle.png").convert_alpha()
+rotated = pygame.transform.rotate(rtriangle, 90)
+
+# Create a 2d list to represent the board
+board = [[' ' for i in range(9)] for j in range(9)]
+
+rdef_locs = []
+rdef_angles = []
+bdef_locs = []
+bdef_angles = []
+comp = tiles - 1
+
+for i in setupsj['ace']['red_deflectors'].values():
+    i = [int(j) for j in i.split()]
+    r = i[0]
+    c = i[1]
+    angle = i[2]
+
+    rdef_locs.append((r,c))
+    rdef_angles.append(angle)
+    # Have blue pieces mirror the reds
+    bdef_locs.append((comp - r, comp - c))
+    bdef_angles.append((angle + 2) % 4)
+
+
+
+for i in range(len(rdef_locs)):
+    rloc = rdef_locs[i]
+    bloc = bdef_locs[i]
+
+    board[rloc[0]][rloc[1]] = Deflector(rloc,rdef_angles[i],'red',square_size)
+    board[bloc[0]][bloc[1]] = Deflector(bloc,bdef_angles[i],'blue',square_size)
+
+board[0][0] = Laser(1,'red', square_size)
+
+def translate_board(board):
+    for row in board:
+        for pos in row:
+            if pos != ' ':
+                pos.display(screen)
+
 
 def print_board(board):
     print("\nBoard")
     for i in board:
         print(i)
+
+
+
+while True:
+    screen = pygame.display.set_mode((board_size,board_size))
+    translate_board(board)
+    #board[0][0].shoot(screen, board)
+
+    pygame.time.delay(1000)
+
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_SPACE]:
+        board[0][0].shoot(screen, board)
+
+    if 1 in pygame.mouse.get_pressed():
+        col, row = pygame.mouse.get_pos()
+        row = int(row/square_size)
+        col = int(col/square_size)
+        if(board[row][col] != ' '):
+            #board[row][col].move((row+1, col), board)
+            board[row][col].show_moves(board, screen)
+
+    #screen.fill((0,0,200)
+    pygame.display.flip()
+
+
+    #x = int(input("Move: "))
+
 '''
-object_dict = {}
-int = 1
-for c in 'ab':
-    object_dict[c] = Deflector((0,4*int),1,c,'red')
-    object_dict[c].plot_piece(board)
-    int += 1
+# Red deflectors
+rdef_locs = [(1,0),(3,2)]
+rdef_angles = [0,1]
 
-object_dict['a'].rotate(3)
-object_dict['b'].rotate(4)
-
-object_dict['a'].move((0,6),board)
-
-object_dict['c'] = Deflector((3,4),1,'c')
-object_dict['c'].plot_piece(board)
-
-object_dict['L'] = Laser('B')
-object_dict['L'].plot_piece(board)
-print_board(board)
-object_dict['L'].shoot_laser(board, object_dict)
-
-print_board(board)
+# Blue deflectors
+bdef_locs = [(1,2), (3,0)]
+bdef_angles = [2,0]
 '''
-
-def main():
-    # Initialize board as a 2d list
-    board = [[' ' for i in range(9)] for j in range(9)]
-    # Create object dict
-    object_dict = {}
-    # Plot pieces
-    board, object_dict = set_up_board(board, object_dict)
-    object_dict['RL'].shoot_laser(board)
-    print_board(board)
-
-def set_up_board(board, object_dict):
-    # Initialize and plot pieces
-    i = 1
-    for p in '12345':
-        object_dict['R'+p] = Deflector((0,i),1,'R'+p,'R')
-        object_dict['R'+p].plot_piece(board)
-        object_dict['B'+p] = Deflector((8,i),1,'B'+p,'B')
-        object_dict['B'+p].plot_piece(board)
-        i += 1
-    # Initialize lasers
-    object_dict['RL'] = Laser('R')
-    object_dict['RL'].plot_piece(board)
-    return board, object_dict

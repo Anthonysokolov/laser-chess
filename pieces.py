@@ -1,154 +1,143 @@
 '''
 Class definitions for laser chess pieces
 '''
+import pygame
+
 class Deflector:
-    def __init__(self, pos, angle, symbol, color):
+    def __init__(self, pos, angle, color, square_size):
         self.row = pos[0]
         self.col = pos[1]
-        # For the angle
-        # 1 is when the mirror is in the top right corner, 2 is top left,
-        # 3 is bottom left, 4 is bottom right
+
+        if color == 'red':
+            self.image = pygame.image.load("rtriangle.png").convert_alpha()
+        else:
+            self.image = pygame.image.load("btriangle.png").convert_alpha()
+
+        # The number of the angle refers to where the mirror is
+        # 0 = top left , 1 = top right, 2 = bottom right, 3 = bottom left
         self.angle = angle
-        self.symbol = symbol
+        self.rotate(self.angle * 90)
 
-    def plot_piece(self, board):
-        board[self.row][self.col] = self.symbol
+        self.color = color
 
-    def remove_piece(self, board):
+        self.square_size = square_size
+
+    def rotate(self, deg):
+        self.image = pygame.transform.rotate(self.image, deg)
+
+    def display(self, screen):
+        screen.blit(self.image,(self.col*self.square_size, self.row*self.square_size))
+
+    def move(self, new_coord, board):
+        board[new_coord[0]][new_coord[1]] = board[self.row][self.col]
         board[self.row][self.col] = ' '
 
-    def rotate(self, new_angle):
-        self.angle = new_angle
+        self.row = new_coord[0]
+        self.col = new_coord[1]
 
-    def move(self, pos, board):
-        if self.move_valid(pos):
-            self.remove_piece(board)
-            self.row = pos[0]
-            self.col = pos[1]
-            self.plot_piece(board)
-        else:
-            return False
-
-    def move_valid(self, pos):
-        if abs(self.row - pos[0]) <= 1 and abs(self.col - pos[1]) <= 1:
-            return True
-        else:
-            return False
-
-    def calc_angle(self, dir):
-        if dir == 'u':
-            if self.angle == 3:
-                return 'r'
-            if self.angle == 4:
-                return 'l'
-        elif dir == 'd':
-            if self.angle == 1:
-                return 'l'
-            if self.angle == 2:
-                return 'r'
-        elif dir == 'r':
-            if self.angle == 1:
-                return 'u'
-            if self.angle == 4:
-                return 'd'
-        elif dir == 'l':
-            if self.angle == 2:
-                return 'u'
-            if self.angle == 3:
-                return 'd'
-        else:
-            return 'rm'
-
+    def show_moves(self, board, screen):
+        for i in range(self.row - 1, self.row + 2):
+            for j in range(self.col - 1, self.col + 2):
+                try:
+                    if board[i][j] == ' ':
+                        pos = (j*self.square_size + 50, i*self.square_size + 50)
+                        pygame.draw.circle(screen, (255, 0, 0), pos, 25)
+                except IndexError:
+                    continue
 
 
 class Laser:
-    def __init__(self, color):
-        self.row = 8
-        self.col = 8
-        self.color = color
+    def __init__(self, angle, color, square_size):
+        self.row = 0
+        self.col = 0
 
-    def plot_piece(self, board):
-        board[self.row][self.col] = 'L'
+        if color == 'red':
+            self.image = pygame.image.load("rlaser.png").convert_alpha()
 
-    def shoot_laser(self, board):
-        r = self.row
-        c = self.col
-        dir = 'u'
-        while True:
-            r, c = self.move_laser(r,c,dir)
-            if self.laser_valid(r,c) == False:
-                break
-            if board[r][c] in [' ','*']:
-                board[r][c] = '*'
-            else:
-                piece = pieces[board[r][c]]
-                angle = piece.angle
-                dir = self.calc_angle(dir, angle)
-                if dir == 'rm':
-                    piece.remove_piece(board)
-                    break
-
-
-    def laser_valid(self,r,c):
-        board_size = 9
-        if r < 0 or c < 0:
-            return False
-        if r >= board_size or c >= board_size:
-            return False
-        return True
-
-
-    def move_laser(self, r, c, dir):
-        '''
-        Moves the laser beam one space in a given direction
-        '''
-        if dir == "u":
-            return (r -1, c)
-        if dir == "d":
-            return (r + 1, c)
-        if dir == "l":
-            return (r, c - 1)
-        if dir == "r":
-            return (r, c + 1)
-
-    def calc_angle(self, dir, angle):
-        if dir == 'u':
-            if angle == 3:
-                return 'r'
-            if angle == 4:
-                return 'l'
-        elif dir == 'd':
-            if angle == 1:
-                return 'l'
-            if angle == 2:
-                return 'r'
-        elif dir == 'r':
-            if angle == 1:
-                return 'u'
-            if angle == 4:
-                return 'd'
-        elif dir == 'l':
-            if angle == 2:
-                return 'u'
-            if angle == 3:
-                return 'd'
-        return 'rm'
-
-
-class Switch:
-    def __init__(self, pos, angle, symbol):
-        self.pos = pos
         self.angle = angle
-        self.symbol = symbol
+        self.square_size = square_size
 
-    def plot_piece(self, board):
-        x = self.pos[0]
-        y = self.pos[1]
+    def rotate(self):
+        self.image = pygame.transform.rotate(self.image, VALUE)
 
-        board[x][y] = self.symbol
+    def display(self, screen):
+        screen.blit(self.image,(self.col*self.square_size, self.row*self.square_size))
 
-    def remove_piece(self, board):
-        x = self.pos[0]
-        y = self.pos[1]
+    def shoot(self, screen, board):
+        '''
+        Shoots and displays a laser beam on the board
+        '''
+        red = (255,0,0)
+        adjust = self.square_size / 2
+        start = [self.col*self.square_size + adjust, self.row*self.square_size + adjust]
+        stop = [start[0], start[1] + self.square_size]
 
-        board[x][y] = ' '
+        dir = 'south'
+
+        while True:
+            pygame.draw.line(screen, red, start, stop)
+            pygame.display.flip()
+            pygame.time.delay(100)
+
+            # Note: pygame coords are (column, row)
+            r = int(stop[1]/self.square_size)
+            c = int(stop[0]/self.square_size)
+
+            if (r not in range(9) or c not in range(9)):
+                break
+
+            if board[r][c] != ' ':
+                dir = self.new_dir(dir, board[r][c].angle)
+
+            if dir != 'end':
+                start, stop = self.new_coords(start, stop, dir)
+            else:
+                board[r][c] = ' '
+                break
+
+
+    def new_dir(self, laser_dir, mirror_angle):
+        '''
+        Calculates the new direction of a laser beam when it hits a mirror
+        '''
+        if laser_dir == 'north':
+            if mirror_angle == 3:
+                return 'east'
+            if mirror_angle == 2:
+                return 'west'
+        if laser_dir == 'south':
+            if mirror_angle == 0:
+                return 'east'
+            if mirror_angle == 1:
+                return 'west'
+        if laser_dir == 'east':
+            if mirror_angle == 1:
+                return 'north'
+            if mirror_angle == 2:
+                return 'south'
+        if laser_dir == 'west':
+            if mirror_angle == 0:
+                return 'north'
+            if mirror_angle == 3:
+                return 'south'
+
+        return 'end'
+
+
+    def new_coords(self, start, stop, dir):
+        '''
+        Calculates the new coordinates for drawing a laser beam
+        The beam is drawn one square at a time
+        '''
+        start = [x for x in stop]
+
+        if dir == 'north':
+            stop[1] -= self.square_size
+        elif dir == 'south':
+            stop[1] += self.square_size
+        elif dir == 'east':
+            stop[0] += self.square_size
+        elif dir == 'west':
+            stop[0] -= self.square_size
+
+        return start, stop
