@@ -65,11 +65,30 @@ def print_board(board):
         print(i)
 
 
+def look_for_move(board):
+    while True:
+        if 1 in pygame.mouse.get_pressed():
+            print("pressed")
+            col, row = pygame.mouse.get_pos()
+            row = int(row/square_size)
+            col = int(col/square_size)
 
+            if(board[row][col] == ' '):
+                print("RET")
+                return row, col
+
+
+
+
+var = 1
 while True:
     screen = pygame.display.set_mode((board_size,board_size))
     translate_board(board)
     #board[0][0].shoot(screen, board)
+
+    if var == 1:
+        pygame.display.flip()
+        var = 0
 
     pygame.time.delay(1000)
 
@@ -85,9 +104,13 @@ while True:
         if(board[row][col] != ' '):
             #board[row][col].move((row+1, col), board)
             board[row][col].show_moves(board, screen)
+            pygame.display.flip()
+            r, c = look_for_move(board)
+            board[row][col].move((r,c),board)
+
 
     #screen.fill((0,0,200)
-    pygame.display.flip()
+    #pygame.display.flip()
 
 
     #x = int(input("Move: "))
