@@ -3,6 +3,7 @@ Main file for laser chess
 '''
 import pygame
 import json
+import time
 from pieces import Deflector, Laser
 
 # Load board setups
@@ -66,9 +67,14 @@ def print_board(board):
 
 
 def look_for_move(board):
-    while True:
-        if 1 in pygame.mouse.get_pressed():
-            print("pressed")
+    end = time.clock() + 10
+    while time.clock() < end:
+        print("clock")
+        #if pygame.mouse.get_pressed()[0]:
+        #    print('clicked')
+        if (1 < 0):
+            pass
+            '''
             col, row = pygame.mouse.get_pos()
             row = int(row/square_size)
             col = int(col/square_size)
@@ -76,6 +82,7 @@ def look_for_move(board):
             if(board[row][col] == ' '):
                 print("RET")
                 return row, col
+            '''
 
 
 
@@ -84,29 +91,32 @@ var = 1
 while True:
     screen = pygame.display.set_mode((board_size,board_size))
     translate_board(board)
-    #board[0][0].shoot(screen, board)
 
     if var == 1:
         pygame.display.flip()
         var = 0
 
-    pygame.time.delay(1000)
+    if var == 2:
+        look_for_move(board)
+        var = 0
 
     keys = pygame.key.get_pressed()
 
     if keys[pygame.K_SPACE]:
         board[0][0].shoot(screen, board)
 
-    if 1 in pygame.mouse.get_pressed():
+    if pygame.mouse.get_pressed()[0]:
         col, row = pygame.mouse.get_pos()
         row = int(row/square_size)
         col = int(col/square_size)
+        print(row, col)
         if(board[row][col] != ' '):
             #board[row][col].move((row+1, col), board)
             board[row][col].show_moves(board, screen)
             pygame.display.flip()
-            r, c = look_for_move(board)
-            board[row][col].move((r,c),board)
+            var = 2
+
+            #board[row][col].move((r,c),board)
 
 
     #screen.fill((0,0,200)
