@@ -42,8 +42,6 @@ for i in setupsj['ace']['red_deflectors'].values():
     bdef_locs.append((comp - r, comp - c))
     bdef_angles.append((angle + 2) % 4)
 
-
-
 for i in range(len(rdef_locs)):
     rloc = rdef_locs[i]
     bloc = bdef_locs[i]
@@ -65,40 +63,24 @@ def print_board(board):
     for i in board:
         print(i)
 
-
-def look_for_move(board):
-    end = time.clock() + 10
-    while time.clock() < end:
-        print("clock")
-        #if pygame.mouse.get_pressed()[0]:
-        #    print('clicked')
-        if (1 < 0):
-            pass
-            '''
-            col, row = pygame.mouse.get_pos()
-            row = int(row/square_size)
-            col = int(col/square_size)
-
-            if(board[row][col] == ' '):
-                print("RET")
-                return row, col
-            '''
+def valid_coords(piece, coords):
+    if piece.row == coords[0] and piece.col == coords[1]:
+        return False
+    if abs(piece.row - coords[0]) <= 1 and abs(piece.col - coords[1]) <= 1:
+        return True
+    return False
 
 
+display = True
+move = False
 
-
-var = 1
 while True:
     screen = pygame.display.set_mode((board_size,board_size))
     translate_board(board)
 
-    if var == 1:
+    if display:
         pygame.display.flip()
-        var = 0
-
-    if var == 2:
-        look_for_move(board)
-        var = 0
+        display = False
 
     keys = pygame.key.get_pressed()
 
@@ -109,28 +91,20 @@ while True:
         col, row = pygame.mouse.get_pos()
         row = int(row/square_size)
         col = int(col/square_size)
-        print(row, col)
+
         if(board[row][col] != ' '):
-            #board[row][col].move((row+1, col), board)
-            board[row][col].show_moves(board, screen)
+            piece = board[row][col]
+            piece.show_moves(board, screen)
+            move = True
             pygame.display.flip()
-            var = 2
 
-            #board[row][col].move((r,c),board)
-
+        if move and valid_coords(piece, (row, col)):
+            piece.move((row, col), board)
+            display = True
+            move = False
 
     #screen.fill((0,0,200)
     #pygame.display.flip()
 
 
     #x = int(input("Move: "))
-
-'''
-# Red deflectors
-rdef_locs = [(1,0),(3,2)]
-rdef_angles = [0,1]
-
-# Blue deflectors
-bdef_locs = [(1,2), (3,0)]
-bdef_angles = [2,0]
-'''
