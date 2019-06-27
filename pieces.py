@@ -14,7 +14,7 @@ class Deflector:
             self.image = pygame.image.load("btriangle.png").convert_alpha()
 
         # The number of the angle refers to where the mirror is
-        # 0 = top left , 1 = top right, 2 = bottom right, 3 = bottom left
+        # 0 = top right , 1 = top left, 2 = bottom left, 3 = bottom right
         self.angle = angle
         self.rotate(self.angle * 90)
 
@@ -48,12 +48,18 @@ class Deflector:
 
 class Laser:
     def __init__(self, angle, color, square_size):
-        self.row = 0
-        self.col = 0
-
-        if color == 'red':
+        if color == 'blue':
             self.image = pygame.image.load("rlaser.png").convert_alpha()
+            self.row = 8
+            self.col = 8
+            self.dir = 'north'
+        else:
+            self.image = pygame.image.load("rlaser.png").convert_alpha()
+            self.row = 0
+            self.col = 0
+            self.dir = 'south'
 
+        self.color = color
         self.angle = angle
         self.square_size = square_size
 
@@ -70,9 +76,10 @@ class Laser:
         red = (255,0,0)
         adjust = self.square_size / 2
         start = [self.col*self.square_size + adjust, self.row*self.square_size + adjust]
-        stop = [start[0], start[1] + self.square_size]
+        stop = [coord for coord in start]
+        dir = self.dir
 
-        dir = 'south'
+        start, stop = self.new_coords(start, stop, dir)
 
         while True:
             pygame.draw.line(screen, red, start, stop)
@@ -94,6 +101,8 @@ class Laser:
             else:
                 board[r][c] = ' '
                 break
+
+        pygame.time.delay(500)
 
 
     def new_dir(self, laser_dir, mirror_angle):

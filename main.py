@@ -8,7 +8,7 @@ from pieces import Deflector, Laser
 
 # Load board setups
 with open('setups.json') as f:
-    setupsj = json.load(f)
+    setups = json.load(f)
 
 # Set board and square size
 tiles = 9
@@ -30,7 +30,7 @@ bdef_locs = []
 bdef_angles = []
 comp = tiles - 1
 
-for i in setupsj['ace']['red_deflectors'].values():
+for i in setups['ace']['red_deflectors'].values():
     i = [int(j) for j in i.split()]
     r = i[0]
     c = i[1]
@@ -43,6 +43,7 @@ for i in setupsj['ace']['red_deflectors'].values():
     bdef_angles.append((angle + 2) % 4)
 
 for i in range(len(rdef_locs)):
+    # COMBINE WITH ABOVE LOOP
     rloc = rdef_locs[i]
     bloc = bdef_locs[i]
 
@@ -50,6 +51,7 @@ for i in range(len(rdef_locs)):
     board[bloc[0]][bloc[1]] = Deflector(bloc,bdef_angles[i],'blue',square_size)
 
 board[0][0] = Laser(1,'red', square_size)
+board[8][8] = Laser(1,'blue', square_size)
 
 def translate_board(board):
     for row in board:
@@ -70,9 +72,22 @@ def valid_coords(piece, coords):
         return True
     return False
 
+def new_color(color):
+    if color == 'blue':
+        return 'red'
+    else:
+        return 'blue'
+
+def shoot_laser(color):
+    if color == 'blue':
+        board[8][8].shoot(screen, board)
+    else:
+        board[0][0].shoot(screen, board)
+
 
 display = True
 move = False
+color = 'blue'
 
 while True:
     screen = pygame.display.set_mode((board_size,board_size))
@@ -86,25 +101,36 @@ while True:
 
     if keys[pygame.K_SPACE]:
         board[0][0].shoot(screen, board)
+        display = True
 
     if pygame.mouse.get_pressed()[0]:
         col, row = pygame.mouse.get_pos()
         row = int(row/square_size)
         col = int(col/square_size)
 
+        if(row == col == 0):
+            # Laser functions
+            continue
+
         if(board[row][col] != ' '):
             piece = board[row][col]
-            piece.show_moves(board, screen)
-            move = True
-            pygame.display.flip()
+            if piece.color == color:
+                piece.show_moves(board, screen)
+                move = True
+                pygame.display.flip()
 
         if move and valid_coords(piece, (row, col)):
             piece.move((row, col), board)
             display = True
             move = False
 
+            screen = pygame.display.set_mode((board_size,board_size))
+            translate_board(board)
+            pygame.display.flip()
+
+            shoot_laser(color)
+            color = new_color(color)
+
+
     #screen.fill((0,0,200)
     #pygame.display.flip()
-
-
-    #x = int(input("Move: "))
